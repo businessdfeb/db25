@@ -28,25 +28,31 @@ class FinalProjectSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """
-        Check that the advisor has not exceeded their leading quota.
+        Check advisor and committee member quotas.
         """
-        # Get the advisor being assigned, if any
+        # --- 1. Check Advisor Leading Quota ---
         advisor = data.get('advisor')
-
         if advisor:
-            # Check if this is an update and if the advisor is unchanged
-            if self.instance and self.instance.advisor == advisor:
-                # Advisor is not being changed, so no need to check quota
-                return data
+            is_new_assignment = not (self.instance and self.instance.advisor == advisor)
+            if is_new_assignment:
+                current_projects_count = FinalProject.objects.filter(advisor=advisor).count()
+                if current_projects_count >= advisor.leading_quota:
+                    raise serializers.ValidationError({
+                        'advisor': f'Advisor {advisor} has reached their leading project limit of {advisor.leading_quota}.'
+                    })
 
-            # Count the number of projects the advisor is currently leading
-            current_projects_count = FinalProject.objects.filter(advisor=advisor).count()
-            
-            # Check against their quota
-            if current_projects_count >= advisor.leading_quota:
-                raise serializers.ValidationError({
-                    'advisor': f'Advisor {advisor} has reached their project limit of {advisor.leading_quota}.'
-                })
+        # --- 2. Check Committee Member Quotas ---
+        committee = data.get('committee_members')
+        if committee:
+            for member in committee:
+                # Only check quota if the member is being newly added to the committee
+                is_new_member = not (self.instance and member in self.instance.committee_members.all())
+                if is_new_member:
+                    committee_count = FinalProject.objects.filter(committee_members=member).count()
+                    if committee_count >= member.committee_quota:
+                        raise serializers.ValidationError({
+                            'committee_members': f'Advisor {member} has reached their committee limit of {member.committee_quota}.'
+                        })
         
         return data
 
