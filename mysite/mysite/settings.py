@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+import socket
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,9 +27,32 @@ SECRET_KEY = 'django-insecure-^=6-_k)oh!n9-fpcd1qd0rf(!8y2!!8cc*so1if(!*ydv@*_dc
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["9000-firebase-db25-1754061651142.cluster-ejd22kqny5htuv5dfowoyipt52.cloudworkstations.dev", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["*"]
 
-CSRF_TRUSTED_ORIGINS = ["https://9000-firebase-db25-1754061651142.cluster-ejd22kqny5htuv5dfowoyipt52.cloudworkstations.dev"]
+# In a development environment, we can be more flexible with CSRF trusted origins.
+# We'll allow the cloud IDE's domain and localhost.
+CSRF_TRUSTED_ORIGINS = [
+    "https://9000-firebase-db25-1754061651142.cluster-ejd22kqny5htuv5dfowoyipt52.cloudworkstations.dev"
+]
+if 'HOSTNAME' in os.environ:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{os.environ['HOSTNAME']}")
+
+if 'GOOGLE_CLOUD_WORKSTATIONS_HOST' in os.environ:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{os.environ['GOOGLE_CLOUD_WORKSTATIONS_HOST']}")
+    
+# Also add the current public IP address of the machine
+try:
+    hostname = socket.gethostname()
+    ip_address = socket.gethostbyname(hostname)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{ip_address}")
+except socket.gaierror:
+    # This might fail in some environments, so we'll just pass
+    pass
+
+CSRF_TRUSTED_ORIGINS.extend([
+    "http://localhost:8000",
+    "http://127.0.0.1:8000"
+])
 
 # Application definition
 
