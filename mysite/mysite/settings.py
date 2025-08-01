@@ -25,8 +25,9 @@ SECRET_KEY = 'django-insecure-^=6-_k)oh!n9-fpcd1qd0rf(!8y2!!8cc*so1if(!*ydv@*_dc
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["9000-firebase-db25-1754061651142.cluster-ejd22kqny5htuv5dfowoyipt52.cloudworkstations.dev", "localhost", "127.0.0.1"]
 
+CSRF_TRUSTED_ORIGINS = ["https://9000-firebase-db25-1754061651142.cluster-ejd22kqny5htuv5dfowoyipt52.cloudworkstations.dev"]
 
 # Application definition
 
@@ -55,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'mysite.middleware.APILoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'mysite.urls'
@@ -139,3 +141,31 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ]
 }
+
+# --- Logging Configuration ---
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'mysite': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+# --- End Logging Configuration ---
